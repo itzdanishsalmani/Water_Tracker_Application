@@ -113,12 +113,14 @@ class MainActivity3 : AppCompatActivity() {
         // Fetch requiredML from Firestore
         fetchRequiredMLFromFirestore()
 
-        // Restore currentML from SharedPreferences
-        restoreCurrentMLFromSharedPreferences()
+        // Fetch currentML for the current date from Firestore
+        fetchCurrentMLFromFirestore()
 
-        // Load water logs from SharedPreferences
+        // Restore currentML and water logs from SharedPreferences
+        restoreCurrentMLFromSharedPreferences()
         loadWaterLogsFromSharedPreferences()
     }
+
     private fun addWater(mlToAdd: Float) {
         GlobalScope.launch(Dispatchers.Main) {
             // Update currentML
@@ -132,13 +134,15 @@ class MainActivity3 : AppCompatActivity() {
             // Log water in the background
             logWaterInBackground(mlToAdd)
 
-            // Save currentML to SharedPreferences
+            // Save currentML and water logs to SharedPreferences
             saveCurrentMLToSharedPreferences(currentML)
+            saveWaterLogsToSharedPreferences()
 
             // Update Firestore data in both locations
             updateUserFirestoreData()
         }
     }
+
     private suspend fun logWaterInBackground(mlAdded: Float) = withContext(Dispatchers.Default) {
         val currentTime = getCurrentTime()
         val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
@@ -167,44 +171,38 @@ class MainActivity3 : AppCompatActivity() {
         val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
 
         if (currentDate != previousDate) {
-            // Date has changed, reset the RecyclerView
-            logAdapter.clearData()
+            // Date has changed, save the new data to Firestore for the current date
+            updateUserFirestoreDataForNewDate(currentDate)
             previousDate = currentDate
-
-            // Reset progress bar and update currentML to zero
-            currentML = 0f
-            currentMLTextView.text = "0 ML"
-            circularProgressBar.setProgressWithAnimation(0f, 500)
-
-            // Update Firestore data for the new date with the updated currentML
-            updateUserFirestoreDataForNewDate(currentDate, currentML)
         }
     }
 
-    private fun updateUserFirestoreDataForNewDate(newDate: String, updatedCurrentML: Float) {
+    private fun updateUserFirestoreDataForNewDate(newDate: String) {
         userEmail?.let { email ->
-            // Define the data for the new date in Firestore with the updated currentML
+            // Update currentML to zero
+            currentML = 0f
+
+            // Define the data for the new date in Firestore
             val data = hashMapOf(
-                "currentML" to updatedCurrentML,
+                "currentML" to currentML,
                 "requiredML" to requiredML,
                 "currentDate" to newDate
             )
 
-            // Construct the path to the document for the current date
-            val documentPath = "users/$email/dailyData/$newDate"
-
-            // Update Firestore with the user's Gmail address as the document ID
-            firestore.document(documentPath)
-                .set(data, SetOptions.merge()) // Use set() with merge option to update specific fields
+            // Create a new Firestore document with a unique ID (Firestore will generate the ID)
+            firestore.collection("users")
+                .document(email)
+                .collection("dailyData") // Create a subcollection for daily data
+                .add(data) // Use add to create a new document with a unique ID
                 .addOnSuccessListener {
                     // Data added successfully in Firestore
-                    currentML = updatedCurrentML // Update currentML after successfully saving to Firestore
                 }
                 .addOnFailureListener { e ->
                     // Handle errors here
                 }
         }
     }
+
     private fun updateUserFirestoreData() {
         userEmail?.let { email ->
             // Define the data to update in Firestore for both locations
@@ -259,6 +257,32 @@ class MainActivity3 : AppCompatActivity() {
         }
     }
 
+    private fun fetchCurrentMLFromFirestore() {
+        userEmail?.let { email ->
+            val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+            val documentPath = "users/$email/dailyData/$currentDate"
+
+            firestore.document(documentPath)
+                .get()
+                .addOnSuccessListener { documentSnapshot ->
+                    if (documentSnapshot.exists()) {
+                        val currentMLFromFirestore = documentSnapshot.getDouble("currentML")
+                        if (currentMLFromFirestore != null) {
+                            currentML = currentMLFromFirestore.toFloat()
+                            currentMLTextView.text = String.format("%.0f ML", currentML)
+
+                            // Update the circularProgressBar as well
+                            val progressPercentage = (currentML / requiredML) * 100
+                            circularProgressBar.setProgressWithAnimation(progressPercentage, 500)
+                        }
+                    }
+                }
+                .addOnFailureListener { e ->
+                    // Handle errors here
+                }
+        }
+    }
+
     private fun saveCurrentMLToSharedPreferences(currentML: Float) {
         val editor = sharedPreferences.edit()
         editor.putFloat("currentML", currentML)
@@ -282,17 +306,24 @@ class MainActivity3 : AppCompatActivity() {
         firestore.firestoreSettings = settings
     }
 
+    private fun clearWaterLogsInSharedPreferences() {
+        val editor = sharedPreferences.edit()
+        editor.remove("waterLogs")
+        editor.apply()
+    }
+
     private fun saveWaterLogsToSharedPreferences() {
-        val sharedPreferencesEditor = sharedPreferences.edit()
+        val editor = sharedPreferences.edit()
         val waterLogsJson = Gson().toJson(waterLogs)
-        sharedPreferencesEditor.putString("waterLogs", waterLogsJson)
-        sharedPreferencesEditor.apply()
+        editor.putString("waterLogs", waterLogsJson)
+        editor.apply()
     }
 
     private fun loadWaterLogsFromSharedPreferences() {
         val waterLogsJson = sharedPreferences.getString("waterLogs", null)
         if (waterLogsJson != null) {
             val type = object : TypeToken<ArrayList<WaterLog>>() {}.type
+            waterLogs.clear()
             waterLogs.addAll(Gson().fromJson(waterLogsJson, type))
             logAdapter.notifyDataSetChanged()
         }
