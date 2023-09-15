@@ -16,6 +16,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreSettings
+import com.google.firebase.firestore.SetOptions
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.mikhaellopez.circularprogressbar.CircularProgressBar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -112,8 +115,10 @@ class MainActivity3 : AppCompatActivity() {
 
         // Restore currentML from SharedPreferences
         restoreCurrentMLFromSharedPreferences()
-    }
 
+        // Load water logs from SharedPreferences
+        loadWaterLogsFromSharedPreferences()
+    }
     private fun addWater(mlToAdd: Float) {
         GlobalScope.launch(Dispatchers.Main) {
             // Update currentML
@@ -130,14 +135,19 @@ class MainActivity3 : AppCompatActivity() {
             // Save currentML to SharedPreferences
             saveCurrentMLToSharedPreferences(currentML)
 
-            // Update Firestore data
+            // Update Firestore data in both locations
             updateUserFirestoreData()
         }
     }
-
     private suspend fun logWaterInBackground(mlAdded: Float) = withContext(Dispatchers.Default) {
         val currentTime = getCurrentTime()
         val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+
+        // Create a WaterLog object
+        val log = WaterLog(currentTime, mlAdded)
+
+        // Add the log to the RecyclerView
+        waterLogs.add(log)
 
         // Notify the RecyclerView adapter
         withContext(Dispatchers.Main) {
@@ -160,23 +170,68 @@ class MainActivity3 : AppCompatActivity() {
             // Date has changed, reset the RecyclerView
             logAdapter.clearData()
             previousDate = currentDate
+
+            // Reset progress bar and update currentML to zero
+            currentML = 0f
+            currentMLTextView.text = "0 ML"
+            circularProgressBar.setProgressWithAnimation(0f, 500)
+
+            // Update Firestore data for the new date with the updated currentML
+            updateUserFirestoreDataForNewDate(currentDate, currentML)
         }
     }
 
-    private fun updateUserFirestoreData() {
+    private fun updateUserFirestoreDataForNewDate(newDate: String, updatedCurrentML: Float) {
         userEmail?.let { email ->
-            // Define the data to update in Firestore
-            val data = hashMapOf<String, Any>(
-                "currentML" to currentML,
-                "requiredML" to requiredML
+            // Define the data for the new date in Firestore with the updated currentML
+            val data = hashMapOf(
+                "currentML" to updatedCurrentML,
+                "requiredML" to requiredML,
+                "currentDate" to newDate
             )
 
+            // Construct the path to the document for the current date
+            val documentPath = "users/$email/dailyData/$newDate"
+
             // Update Firestore with the user's Gmail address as the document ID
+            firestore.document(documentPath)
+                .set(data, SetOptions.merge()) // Use set() with merge option to update specific fields
+                .addOnSuccessListener {
+                    // Data added successfully in Firestore
+                    currentML = updatedCurrentML // Update currentML after successfully saving to Firestore
+                }
+                .addOnFailureListener { e ->
+                    // Handle errors here
+                }
+        }
+    }
+    private fun updateUserFirestoreData() {
+        userEmail?.let { email ->
+            // Define the data to update in Firestore for both locations
+            val data = hashMapOf(
+                "currentML" to currentML,
+                "requiredML" to requiredML,
+                "currentDate" to SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+            )
+
+            // Update Firestore data in the "users" document
             firestore.collection("users")
                 .document(email)
-                .update(data) // Use update() instead of set() to update specific fields
+                .set(data, SetOptions.merge()) // Use set() with merge option to update specific fields
                 .addOnSuccessListener {
                     // Data updated successfully in Firestore
+                }
+                .addOnFailureListener { e ->
+                    // Handle errors here
+                }
+
+            // Update Firestore data in the "dailyData" collection for the current date
+            val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+            val documentPath = "users/$email/dailyData/$currentDate"
+            firestore.document(documentPath)
+                .set(data, SetOptions.merge()) // Use set() with merge option to update specific fields
+                .addOnSuccessListener {
+                    // Data updated successfully in Firestore for the current date
                 }
                 .addOnFailureListener { e ->
                     // Handle errors here
@@ -225,5 +280,21 @@ class MainActivity3 : AppCompatActivity() {
             .setPersistenceEnabled(true)
             .build()
         firestore.firestoreSettings = settings
+    }
+
+    private fun saveWaterLogsToSharedPreferences() {
+        val sharedPreferencesEditor = sharedPreferences.edit()
+        val waterLogsJson = Gson().toJson(waterLogs)
+        sharedPreferencesEditor.putString("waterLogs", waterLogsJson)
+        sharedPreferencesEditor.apply()
+    }
+
+    private fun loadWaterLogsFromSharedPreferences() {
+        val waterLogsJson = sharedPreferences.getString("waterLogs", null)
+        if (waterLogsJson != null) {
+            val type = object : TypeToken<ArrayList<WaterLog>>() {}.type
+            waterLogs.addAll(Gson().fromJson(waterLogsJson, type))
+            logAdapter.notifyDataSetChanged()
+        }
     }
 }
