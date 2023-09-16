@@ -2,7 +2,6 @@ package com.example.water_traker_application
 
 import android.content.Intent
 import android.content.SharedPreferences
-import android.graphics.Color.BLUE
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -11,6 +10,7 @@ import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
@@ -62,14 +62,20 @@ class MainActivity3 : AppCompatActivity() {
 
         // Retrieve requiredML from SharedPreferences
         requiredML = sharedPreferences.getFloat("requiredML", 0f)
-        requiredMLTextView.text = String.format("%.0f ML", requiredML)
+
+        currentMLTextView.text = String.format("%.0f ml", currentML)
+        requiredMLTextView.text = String.format("/%.0f ml", requiredML)
+
+
+        //using defined color in color.xml
+        val progressBarColor1 = ContextCompat.getColor(this, R.color.purple_500)
 
         circularProgressBar = findViewById(R.id.circularProgressBar)
         circularProgressBar.apply {
             progressMax = 100f
-            progressBarWidth = 5f
-            backgroundProgressBarWidth = 7f
-            progressBarColor = BLUE
+            progressBarWidth = 10f
+            backgroundProgressBarWidth = 0f
+            progressBarColor = progressBarColor1
         }
 
         logRecyclerView = findViewById(R.id.logRecyclerView)
@@ -80,7 +86,7 @@ class MainActivity3 : AppCompatActivity() {
         val addWaterButton = findViewById<ImageButton>(R.id.addWaterButton)
         addWaterButton.setOnClickListener {
             addWater(150f)
-            showToast("+150 ML added")
+            showToast("+150 ml added")
         }
 
         val handler = Handler(Looper.getMainLooper())
@@ -125,7 +131,7 @@ class MainActivity3 : AppCompatActivity() {
         GlobalScope.launch(Dispatchers.Main) {
             // Update currentML
             currentML += mlToAdd
-            currentMLTextView.text = String.format("%.0f ML", currentML)
+            currentMLTextView.text = String.format("%.0f ", currentML)
 
             // Calculate progress percentage and update circularProgressBar
             val progressPercentage = (currentML / requiredML) * 100
