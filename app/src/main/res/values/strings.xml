@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Water_Traker_Application</string>
+    <string name="app_name">WaterTracker Application</string>
 
     <!-- Quotes -->
         <string-array name="quotes">

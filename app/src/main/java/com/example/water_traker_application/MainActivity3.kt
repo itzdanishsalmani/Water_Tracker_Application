@@ -101,16 +101,14 @@ class MainActivity3 : AppCompatActivity() {
                 // Disable the button
                 isButtonEnabled = false
 
-                // Enable the button after 5 seconds
-                Handler(Looper.getMainLooper()).postDelayed({
-                    isButtonEnabled = true
-                }, 5000) // 5000 milliseconds (5 seconds)
-
+                // Add water and handle completion
                 addWater(150f)
+
+                // Show a random quote
                 showRandomQuote()
-                showToast("+150 ml added")
             }
         }
+
 
         val handler = Handler(Looper.getMainLooper())
         val checkDateRunnable = object : Runnable {
@@ -155,9 +153,6 @@ class MainActivity3 : AppCompatActivity() {
             // Create a new WaterLog entry
             val log = WaterLog(getCurrentTime(), mlToAdd)
 
-            // Insert the new entry at the beginning of the list
-            waterLogs.add(0, log)
-
             // Update the RecyclerView
             logAdapter.notifyItemInserted(0)
 
@@ -172,8 +167,15 @@ class MainActivity3 : AppCompatActivity() {
             saveCurrentMLToSharedPreferences(currentML)
             saveWaterLogsToSharedPreferences()
             updateUserFirestoreData()
+
+            // Use a Handler to re-enable the button after a delay (e.g., 1000 milliseconds)
+            Handler().postDelayed({
+                // Re-enable the button
+                isButtonEnabled = true
+            }, 1000) // 1000 milliseconds (1 second) delay
         }
     }
+
 
     private fun showRandomQuote() {
         // Get a random quote from the quotesArray
@@ -185,7 +187,6 @@ class MainActivity3 : AppCompatActivity() {
         val quoteTextView = findViewById<TextView>(R.id.quoteTextView)
         quoteTextView.text = randomQuote
     }
-
 
     private suspend fun logWaterInBackground(mlAdded: Float) = withContext(Dispatchers.Default) {
         val currentTime = getCurrentTime()
