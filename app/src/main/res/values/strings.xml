@@ -3,9 +3,11 @@
 
     <!-- Quotes -->
         <string-array name="quotes">
-            <item>Quote 1 text</item>
-            <item>Quote 2 text</item>
-            <!-- Add more quotes here -->
+            <item>Do not drink cold water immediately after hot drinks like tea or coffee</item>
+            <item>Drinking water in a sitting posture is better than in a standing or running position</item>
+            <item>Hold the water in your mouth for a while before swallowing</item>
+            <item>Do not drink water immediately eating</item>
+            <item>Drink your glass of water slowly with some small sips </item>
+            <item>Do not drink cold water or water with ice</item>
         </string-array>
-
 </resources>

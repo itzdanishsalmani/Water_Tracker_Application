@@ -55,6 +55,7 @@ class MainActivity3 : AppCompatActivity() {
     private val quotesArray: Array<String> by lazy {
         resources.getStringArray(R.array.quotes)
     }
+    private var isButtonEnabled = true // for block clicked to addWaterButton immediately
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -96,9 +97,19 @@ class MainActivity3 : AppCompatActivity() {
 
         val addWaterButton = findViewById<ImageButton>(R.id.addWaterButton)
         addWaterButton.setOnClickListener {
-            addWater(150f)
-            showRandomQuote() // Show a random quote
-            showToast("+150 ml added")
+            if (isButtonEnabled) {
+                // Disable the button
+                isButtonEnabled = false
+
+                // Enable the button after 5 seconds
+                Handler(Looper.getMainLooper()).postDelayed({
+                    isButtonEnabled = true
+                }, 5000) // 5000 milliseconds (5 seconds)
+
+                addWater(150f)
+                showRandomQuote()
+                showToast("+150 ml added")
+            }
         }
 
         val handler = Handler(Looper.getMainLooper())
@@ -204,7 +215,13 @@ class MainActivity3 : AppCompatActivity() {
         val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
 
         if (currentDate != previousDate) {
-            // Date has changed, save the new data to Firestore for the current date
+            // Date has changed, clear the waterLogs list
+            waterLogs.clear()
+
+            // Notify the RecyclerView adapter
+            logAdapter.notifyDataSetChanged()
+
+            // Save the new data to Firestore for the current date
             updateUserFirestoreDataForNewDate(currentDate)
             previousDate = currentDate
         }
