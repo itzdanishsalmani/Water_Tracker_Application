@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">Water_Traker_Application</string>
+
+    <!-- Quotes -->
+        <string-array name="quotes">
+            <item>Quote 1 text</item>
+            <item>Quote 2 text</item>
+            <!-- Add more quotes here -->
+        </string-array>
+
 </resources>

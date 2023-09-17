@@ -1,5 +1,6 @@
 package com.example.water_traker_application
 
+import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -27,6 +28,7 @@ import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.random.Random
 
 class MainActivity3 : AppCompatActivity() {
 
@@ -50,6 +52,10 @@ class MainActivity3 : AppCompatActivity() {
     private lateinit var firestore: FirebaseFirestore
     private var userEmail: String? = null // User's Gmail address
 
+    private val quotesArray: Array<String> by lazy {
+        resources.getStringArray(R.array.quotes)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main3)
@@ -60,12 +66,17 @@ class MainActivity3 : AppCompatActivity() {
         // Initialize SharedPreferences
         sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE)
 
-        // Retrieve requiredML from SharedPreferences
-        requiredML = sharedPreferences.getFloat("requiredML", 0f)
+        // Check if requiredML was passed from MainActivity2
+        val passedRequiredML = intent.getFloatExtra("requiredML", -1f)
+        if (passedRequiredML != -1f) {
+            requiredML = passedRequiredML
+        } else {
+            // Retrieve requiredML from SharedPreferences
+            requiredML = sharedPreferences.getFloat("requiredML", 0f)
+        }
 
-        currentMLTextView.text = String.format("%.0f ml", currentML)
-        requiredMLTextView.text = String.format("/%.0f ml", requiredML)
-
+        currentMLTextView.text = String.format("%.0f ", currentML)
+        requiredMLTextView.text = String.format("%.0f ml", requiredML)
 
         //using defined color in color.xml
         val progressBarColor1 = ContextCompat.getColor(this, R.color.purple_500)
@@ -86,6 +97,7 @@ class MainActivity3 : AppCompatActivity() {
         val addWaterButton = findViewById<ImageButton>(R.id.addWaterButton)
         addWaterButton.setOnClickListener {
             addWater(150f)
+            showRandomQuote() // Show a random quote
             showToast("+150 ml added")
         }
 
@@ -129,25 +141,40 @@ class MainActivity3 : AppCompatActivity() {
 
     private fun addWater(mlToAdd: Float) {
         GlobalScope.launch(Dispatchers.Main) {
-            // Update currentML
-            currentML += mlToAdd
-            currentMLTextView.text = String.format("%.0f ", currentML)
+            // Create a new WaterLog entry
+            val log = WaterLog(getCurrentTime(), mlToAdd)
 
-            // Calculate progress percentage and update circularProgressBar
+            // Insert the new entry at the beginning of the list
+            waterLogs.add(0, log)
+
+            // Update the RecyclerView
+            logAdapter.notifyItemInserted(0)
+
+            // Update currentML, progress bar, and save data as before
+            currentML += mlToAdd
+            currentMLTextView.text = String.format("%.0f /", currentML)
             val progressPercentage = (currentML / requiredML) * 100
             circularProgressBar.setProgressWithAnimation(progressPercentage, 500)
 
-            // Log water in the background
             logWaterInBackground(mlToAdd)
 
-            // Save currentML and water logs to SharedPreferences
             saveCurrentMLToSharedPreferences(currentML)
             saveWaterLogsToSharedPreferences()
-
-            // Update Firestore data in both locations
             updateUserFirestoreData()
         }
     }
+
+    private fun showRandomQuote() {
+        // Get a random quote from the quotesArray
+        val random = Random
+        val randomIndex = random.nextInt(quotesArray.size)
+        val randomQuote = quotesArray[randomIndex]
+
+        // Display the quote (you can show it in a TextView)
+        val quoteTextView = findViewById<TextView>(R.id.quoteTextView)
+        quoteTextView.text = randomQuote
+    }
+
 
     private suspend fun logWaterInBackground(mlAdded: Float) = withContext(Dispatchers.Default) {
         val currentTime = getCurrentTime()
@@ -170,7 +197,7 @@ class MainActivity3 : AppCompatActivity() {
     }
 
     private fun getCurrentTime(): String {
-        return SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date())
+        return SimpleDateFormat("hh:mm a", Locale.getDefault()).format(Date())
     }
 
     private fun resetRecyclerViewIfNeeded() {
@@ -253,7 +280,7 @@ class MainActivity3 : AppCompatActivity() {
                         val requiredMLFromFirestore = documentSnapshot.getDouble("requiredML")
                         if (requiredMLFromFirestore != null) {
                             requiredML = requiredMLFromFirestore.toFloat()
-                            requiredMLTextView.text = String.format("%.0f ML", requiredML)
+                            requiredMLTextView.text = String.format("%.0f ml", requiredML)
                         }
                     }
                 }
@@ -275,7 +302,7 @@ class MainActivity3 : AppCompatActivity() {
                         val currentMLFromFirestore = documentSnapshot.getDouble("currentML")
                         if (currentMLFromFirestore != null) {
                             currentML = currentMLFromFirestore.toFloat()
-                            currentMLTextView.text = String.format("%.0f ML", currentML)
+                            currentMLTextView.text = String.format("%.0f /", currentML)
 
                             // Update the circularProgressBar as well
                             val progressPercentage = (currentML / requiredML) * 100
@@ -297,7 +324,7 @@ class MainActivity3 : AppCompatActivity() {
 
     private fun restoreCurrentMLFromSharedPreferences() {
         currentML = sharedPreferences.getFloat("currentML", 0f)
-        currentMLTextView.text = String.format("%.0f ML", currentML)
+        currentMLTextView.text = String.format("%.0f /", currentML)
 
         // Update the circularProgressBar as well
         val progressPercentage = (currentML / requiredML) * 100

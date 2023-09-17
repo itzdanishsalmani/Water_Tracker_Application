@@ -11,6 +11,7 @@
         android:id="@+id/timeTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginLeft="20dp"
         android:textAppearance="?android:textAppearanceMedium"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -24,12 +25,13 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:textAppearanceMedium"
-        app:layout_constraintStart_toEndOf="@+id/timeTextView"
+        app:layout_constraintLeft_toRightOf="@+id/timeTextView"
+        android:layout_marginLeft="30dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         android:paddingStart="8dp"
         android:paddingLeft="8dp"
-        tools:text="150 ML" />
+        tools:text="150 ml" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 

@@ -3,6 +3,7 @@ package com.example.water_traker_application
 import android.os.Bundle
 import android.widget.CalendarView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -56,6 +57,9 @@ class MainActivity5 : AppCompatActivity() {
             } else {
                 // Selected date is in the future, display a message or take appropriate action
                 // For example, you can show a Toast message indicating that future dates cannot be selected
+
+                    Toast.makeText(this,"Future date cannot be selected", Toast.LENGTH_SHORT).show()
+
             }
         }
     }
@@ -83,7 +87,7 @@ class MainActivity5 : AppCompatActivity() {
                             0
                         }
 
-                        percentageTextView.text = "$percentage%"
+                        percentageTextView.text = "$percentage% completed"
                     } else {
                         // Data not found for the selected date, display 0%
                         percentageTextView.text = "0%"

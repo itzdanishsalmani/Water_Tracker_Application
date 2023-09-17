@@ -30,7 +30,7 @@ class WaterLogAdapter(private val waterLogs: MutableList<WaterLog>) :
     override fun onBindViewHolder(holder: WaterLogViewHolder, position: Int) {
         val log = waterLogs[position]
         holder.timeTextView.text = log.time
-        holder.amountTextView.text = "${log.amount} ML"
+        holder.amountTextView.text = "${log.amount.toInt()} ml" // Convert to Int
     }
 
     override fun getItemCount(): Int {

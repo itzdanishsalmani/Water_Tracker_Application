@@ -4,26 +4,87 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/background"
     tools:context=".MainActivity2">
+
+    <TextView
+        android:id="@+id/enterDetailsTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:paddingTop="10dp"
+        android:text="Enter Details"
+        android:textColor="@color/white"
+        android:textSize="40sp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <EditText
         android:id="@+id/enterWeight"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="200dp"
         android:hint="Enter Weight"
+        android:textSize="25sp"
+        android:textColor="@color/white"
+        android:layout_marginRight="90dp"
+        android:textColorHint="@color/white"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"></EditText>
+        app:layout_constraintTop_toTopOf="parent" />
+
     <TextView
+        android:id="@+id/KgsTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@id/enterWeight"
+        android:layout_marginTop="215dp"
+        android:layout_marginRight="55dp"
+        android:text="Kg"
+        android:textColor="@color/white"
+        android:textSize="25sp"
+        app:layout_constraintLeft_toRightOf="@id/enterWeight"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/ortTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="or"
+        android:textSize="25sp"
+        android:textColor="@color/white"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        android:text="Kgs"
-        android:textSize="30dp"
-        />
+        app:layout_constraintTop_toBottomOf="@+id/enterWeight"
+        android:layout_marginTop="20dp" />
+
+    <EditText
+        android:id="@+id/enterTarget"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:hint="Enter Target"
+        android:textSize="25sp"
+        android:layout_marginRight="90dp"
+        android:textColorHint="@color/white"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/ortTextView" />
+
+    <TextView
+        android:id="@+id/mlTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="ml"
+        android:layout_marginTop="35dp"
+        android:textSize="25sp"
+        android:textColor="@color/white"
+        app:layout_constraintLeft_toRightOf="@id/enterTarget"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginRight="70dp"
+        app:layout_constraintTop_toBottomOf="@+id/ortTextView" />
+
     <Button
         android:id="@+id/nextButton2"
         android:layout_width="wrap_content"
@@ -35,7 +96,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintVertical_bias="0.8"
         />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
