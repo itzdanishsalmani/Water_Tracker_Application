@@ -14,7 +14,6 @@ class WaterLogAdapter(private val waterLogs: MutableList<WaterLog>) :
         waterLogs.clear()
         notifyDataSetChanged()
     }
-
     inner class WaterLogViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val timeTextView: TextView = itemView.findViewById(R.id.timeTextView)
         val amountTextView: TextView = itemView.findViewById(R.id.amountTextView)
@@ -25,14 +24,12 @@ class WaterLogAdapter(private val waterLogs: MutableList<WaterLog>) :
             .inflate(R.layout.item_water_log, parent, false)
         return WaterLogViewHolder(itemView)
     }
-
     @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: WaterLogViewHolder, position: Int) {
         val log = waterLogs[position]
         holder.timeTextView.text = log.time
         holder.amountTextView.text = "${log.amount.toInt()} ml" // Convert to Int
     }
-
     override fun getItemCount(): Int {
         return waterLogs.size
     }
