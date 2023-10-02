@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity5">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".HistoryFragment">
 
     <TextView
         android:id="@+id/percentageTextView"
@@ -54,7 +53,7 @@
         android:id="@+id/weeklyAverageData"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text=" ml/day"
+        android:text=" percentage"
         android:textSize="15sp"
         android:layout_marginTop="30dp"
         android:layout_marginRight="20dp"
@@ -76,57 +75,35 @@
         android:id="@+id/monthlyAverageData"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text=" ml/day"
+        android:text=" percentage"
         android:textSize="15sp"
         android:layout_marginTop="30dp"
         android:layout_marginRight="20dp"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/weeklyAverageData" />
 
-    <TextView
-        android:id="@+id/averageCompletion"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Average Completion"
-        android:textSize="15sp"
-        android:layout_marginTop="30dp"
-        android:layout_marginLeft="20dp"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/monthlyAverage" />
-
-    <TextView
-        android:id="@+id/averageCompletionData"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text=" ml/day"
-        android:textSize="15sp"
-        android:layout_marginTop="30dp"
-        android:layout_marginRight="20dp"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/monthlyAverageData" />
-
     <ImageView
         android:id="@+id/waterDropletBelow"
         android:layout_width="80dp"
         android:layout_height="80dp"
         android:layout_marginLeft="20dp"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="25dp"
         android:src="@drawable/water_drop_specs"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/averageCompletion" />
+        app:layout_constraintTop_toBottomOf="@+id/monthlyAverage" />
 
     <TextView
         android:id="@+id/quotes"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="A healthy mind and body is a hydrated one Come have a try!"
-        android:textSize="16sp"
-        android:textAlignment="center"
-        android:layout_marginTop="45dp"
         android:layout_marginLeft="10dp"
+        android:layout_marginTop="40dp"
         android:layout_marginRight="10dp"
+        android:text="A healthy mind and body is a hydrated one Come have a try!"
+        android:textAlignment="center"
+        android:textSize="16sp"
         app:layout_constraintLeft_toRightOf="@+id/waterDropletBelow"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/averageCompletion" />
+        app:layout_constraintTop_toBottomOf="@+id/monthlyAverageData" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

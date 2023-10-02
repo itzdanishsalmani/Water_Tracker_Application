@@ -1,4 +1,4 @@
-package com.example.water_traker_application
+package com.example.water_tracker_application
 
 import android.annotation.SuppressLint
 import android.view.LayoutInflater

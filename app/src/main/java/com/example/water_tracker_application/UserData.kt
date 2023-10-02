@@ -1,4 +1,4 @@
-package com.example.water_traker_application
+package com.example.water_tracker_application
 
 data class UserData(
     val currentML: Float = 0f, // Current ML value

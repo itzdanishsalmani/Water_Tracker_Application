@@ -1,4 +1,4 @@
-package com.example.water_traker_application
+package com.example.water_tracker_application
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4

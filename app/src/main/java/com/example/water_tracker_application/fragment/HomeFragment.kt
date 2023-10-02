@@ -1,17 +1,18 @@
-package com.example.water_traker_application
+package com.example.water_tracker_application
 
 import android.content.Context
-import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.widget.Button
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
@@ -30,7 +31,7 @@ import java.util.Date
 import java.util.Locale
 import kotlin.random.Random
 
-class MainActivity3 : AppCompatActivity() {
+class HomeFragment : Fragment() {
 
     private lateinit var logRecyclerView: RecyclerView
     private lateinit var logAdapter: WaterLogAdapter
@@ -57,18 +58,21 @@ class MainActivity3 : AppCompatActivity() {
     }
     private var isButtonEnabled = true // for block clicked to addWaterButton immediately
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main3)
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        // Inflate the layout for this fragment
+        val view = inflater.inflate(R.layout.fragment_home, container, false)
 
-        requiredMLTextView = findViewById(R.id.requiredML)
-        currentMLTextView = findViewById(R.id.currentML)
+        requiredMLTextView = view.findViewById(R.id.requiredML)
+        currentMLTextView = view.findViewById(R.id.currentML)
 
         // Initialize SharedPreferences
-        sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE)
+        sharedPreferences = requireContext().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
 
         // Check if requiredML was passed from MainActivity2
-        val passedRequiredML = intent.getFloatExtra("requiredML", -1f)
+        val passedRequiredML = requireActivity().intent.getFloatExtra("requiredML", -1f)
         if (passedRequiredML != -1f) {
             requiredML = passedRequiredML
         } else {
@@ -80,9 +84,9 @@ class MainActivity3 : AppCompatActivity() {
         requiredMLTextView.text = String.format("%.0f ml", requiredML)
 
         //using defined color in color.xml
-        val progressBarColor1 = ContextCompat.getColor(this, R.color.purple_500)
+        val progressBarColor1 = ContextCompat.getColor(requireContext(), R.color.purple_500)
 
-        circularProgressBar = findViewById(R.id.circularProgressBar)
+        circularProgressBar = view.findViewById(R.id.circularProgressBar)
         circularProgressBar.apply {
             progressMax = 100f
             progressBarWidth = 10f
@@ -90,12 +94,12 @@ class MainActivity3 : AppCompatActivity() {
             progressBarColor = progressBarColor1
         }
 
-        logRecyclerView = findViewById(R.id.logRecyclerView)
+        logRecyclerView = view.findViewById(R.id.logRecyclerView)
         logAdapter = WaterLogAdapter(waterLogs)
         logRecyclerView.adapter = logAdapter
-        logRecyclerView.layoutManager = LinearLayoutManager(this)
+        logRecyclerView.layoutManager = LinearLayoutManager(requireContext())
 
-        val addWaterButton = findViewById<ImageButton>(R.id.addWaterButton)
+        val addWaterButton = view.findViewById<ImageButton>(R.id.addWaterButton)
         addWaterButton.setOnClickListener {
             if (isButtonEnabled) {
                 // Disable the button
@@ -109,7 +113,6 @@ class MainActivity3 : AppCompatActivity() {
             }
         }
 
-
         val handler = Handler(Looper.getMainLooper())
         val checkDateRunnable = object : Runnable {
             override fun run() {
@@ -118,12 +121,6 @@ class MainActivity3 : AppCompatActivity() {
             }
         }
         handler.post(checkDateRunnable)
-
-        val testButton = findViewById<Button>(R.id.historyButton)
-        testButton.setOnClickListener {
-            val intent44 = Intent(this, MainActivity5::class.java)
-            startActivity(intent44)
-        }
 
         // Initialize Firebase
         firebaseAuth = FirebaseAuth.getInstance()
@@ -146,9 +143,13 @@ class MainActivity3 : AppCompatActivity() {
         // Restore currentML and water logs from SharedPreferences
         restoreCurrentMLFromSharedPreferences()
         loadWaterLogsFromSharedPreferences()
+
+        return view
     }
 
     private fun addWater(mlToAdd: Float) {
+        val cupSize = sharedPreferences.getFloat("cupSize", 150f) // Default to 150 ml if cupSize is not set
+
         GlobalScope.launch(Dispatchers.Main) {
             // Create a new WaterLog entry
             val log = WaterLog(getCurrentTime(), mlToAdd)
@@ -176,7 +177,6 @@ class MainActivity3 : AppCompatActivity() {
         }
     }
 
-
     private fun showRandomQuote() {
         // Get a random quote from the quotesArray
         val random = Random
@@ -184,8 +184,8 @@ class MainActivity3 : AppCompatActivity() {
         val randomQuote = quotesArray[randomIndex]
 
         // Display the quote (you can show it in a TextView)
-        val quoteTextView = findViewById<TextView>(R.id.quoteTextView)
-        quoteTextView.text = randomQuote
+        val quoteTextView = view?.findViewById<TextView>(R.id.quoteTextView)
+        quoteTextView?.text = randomQuote
     }
 
     private suspend fun logWaterInBackground(mlAdded: Float) = withContext(Dispatchers.Default) {
@@ -205,7 +205,7 @@ class MainActivity3 : AppCompatActivity() {
     }
 
     private fun showToast(message: String) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
     }
 
     private fun getCurrentTime(): String {

@@ -1,20 +1,22 @@
-package com.example.water_traker_application
-
+package com.example.water_tracker_application
 import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.CalendarView
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreSettings
+import com.google.firebase.firestore.FieldPath
 import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.Calendar
 
-class MainActivity5 : AppCompatActivity() {
+class HistoryFragment : Fragment() {
 
     private lateinit var calendarView: CalendarView
     private lateinit var percentageTextView: TextView
@@ -26,14 +28,17 @@ class MainActivity5 : AppCompatActivity() {
     private var userEmail: String? = null
     private val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main5)
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        // Inflate the layout for this fragment
+        val view = inflater.inflate(R.layout.fragment_history, container, false)
 
-        calendarView = findViewById(R.id.calendarView)
-        percentageTextView = findViewById(R.id.percentageTextView)
-        weeklyAverageData = findViewById(R.id.weeklyAverageData)
-        monthlyAverageData = findViewById(R.id.monthlyAverageData)
+        calendarView = view.findViewById(R.id.calendarView)
+        percentageTextView = view.findViewById(R.id.percentageTextView)
+        weeklyAverageData = view.findViewById(R.id.weeklyAverageData)
+        monthlyAverageData = view.findViewById(R.id.monthlyAverageData)
 
         firebaseAuth = FirebaseAuth.getInstance()
         firestore = FirebaseFirestore.getInstance()
@@ -52,9 +57,11 @@ class MainActivity5 : AppCompatActivity() {
             if (selectedDate <= currentDate) {
                 fetchFirestoreData(selectedDate)
             } else {
-                Toast.makeText(this, "Future date cannot be selected", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Future date cannot be selected", Toast.LENGTH_SHORT).show()
             }
         }
+
+        return view
     }
 
     private fun fetchFirestoreData(selectedDate: String) {
@@ -214,5 +221,4 @@ class MainActivity5 : AppCompatActivity() {
 
         return dateFormat.format(calendar.time)
     }
-
 }
