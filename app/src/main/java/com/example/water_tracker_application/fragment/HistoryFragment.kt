@@ -107,11 +107,15 @@ class HistoryFragment : Fragment() {
             calendar.set(Calendar.DAY_OF_MONTH, 1) // Set to the 1st day of the current month
             val startDate =
                 SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
-            val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+
+            calendar.add(Calendar.MONTH, 1) // Move to the 1st day of the next month
+            calendar.add(Calendar.DAY_OF_MONTH, -1) // Subtract 1 day to get the day before the 1st day of the next month
+            val endDate =
+                SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
 
             firestore.collection("users/$email/dailyData")
                 .whereGreaterThanOrEqualTo(FieldPath.documentId(), startDate)
-                .whereLessThanOrEqualTo(FieldPath.documentId(), currentDate)
+                .whereLessThanOrEqualTo(FieldPath.documentId(), endDate)
                 .get()
                 .addOnSuccessListener { querySnapshot ->
                     val dailyPercentages = mutableListOf<Double>()

@@ -1,6 +1,12 @@
 package com.example.water_tracker_application
 
+import android.app.AlarmManager
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
+import android.os.Build
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.os.Handler
@@ -62,6 +68,36 @@ class HomeFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+
+        //notification
+        // Schedule the alarm to send a notification every minute
+// Define the interval in hours
+        val i = 2 // Change this to your desired interval in hours
+
+// Calculate the interval in milliseconds
+        val intervalMillis = i * 60 * 60 * 1000L // Convert hours to milliseconds
+
+// Schedule the alarm to send a notification every i hours
+        val intent = Intent(requireContext(), MemoBroadcast::class.java)
+        val pendingIntent = PendingIntent.getBroadcast(
+            requireContext(),
+            0,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
+        val alarmManager = requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
+        alarmManager.setRepeating(
+            AlarmManager.RTC_WAKEUP,
+            System.currentTimeMillis(),
+            intervalMillis,
+            pendingIntent
+        )
+
+// Create a notification channel (if it doesn't exist)
+        createNotificationChannel()
+
         // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.fragment_home, container, false)
 
@@ -379,4 +415,18 @@ class HomeFragment : Fragment() {
             logAdapter.notifyDataSetChanged()
         }
     }
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val name = "PASTICCINO"
+            val description = "PASTICCINO'S CHANNEL"
+            val importance = NotificationManager.IMPORTANCE_DEFAULT
+            val channel = NotificationChannel("Notification", name, importance)
+            channel.description = description
+
+            val notificationManager =
+                requireContext().getSystemService(NotificationManager::class.java)
+            notificationManager.createNotificationChannel(channel)
+        }
+    }
+
 }
