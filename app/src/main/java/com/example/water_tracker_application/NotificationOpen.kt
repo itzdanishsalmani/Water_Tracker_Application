@@ -9,7 +9,7 @@ import androidx.fragment.app.FragmentTransaction
 class NotificationOpen : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_notification)
+        setContentView(R.layout.activity_notification_open)
 
         // Open the HomeFragment when the notification is tapped
         openHomeFragment()
@@ -22,7 +22,7 @@ class NotificationOpen : AppCompatActivity() {
         // Replace the fragment_container with the HomeFragment
         val fragmentManager: FragmentManager = supportFragmentManager
         val transaction: FragmentTransaction = fragmentManager.beginTransaction()
-        transaction.replace(R.id.fragment_container, homeFragment)
+        transaction.replace(R.id.fragment_Container, homeFragment)
         transaction.commit()
     }
 }

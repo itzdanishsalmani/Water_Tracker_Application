@@ -11,12 +11,15 @@ import com.google.android.material.tabs.TabLayoutMediator
 
 class MainActivity3 : AppCompatActivity() {
 
+    private lateinit var viewPager: ViewPager2
+    private lateinit var tabLayout: TabLayout
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main3)
 
-        val viewPager: ViewPager2 = findViewById(R.id.view_pager)
-        val tabLayout: TabLayout = findViewById(R.id.tab_layout)
+        viewPager = findViewById(R.id.view_pager)
+        tabLayout = findViewById(R.id.tab_layout)
 
         val adapter = MyFragmentAdapter(this)
         viewPager.adapter = adapter
@@ -30,7 +33,8 @@ class MainActivity3 : AppCompatActivity() {
         }.attach()
     }
 
-    private inner class MyFragmentAdapter(activity: FragmentActivity) : FragmentStateAdapter(activity) {
+    private inner class MyFragmentAdapter(activity: FragmentActivity) :
+        FragmentStateAdapter(activity) {
         override fun getItemCount(): Int {
             return 2 // Number of tabs
         }
@@ -44,4 +48,10 @@ class MainActivity3 : AppCompatActivity() {
             }
         }
     }
+
+    override fun onBackPressed() {
+        finish()
+        moveTaskToBack(true)
+    }
+
 }

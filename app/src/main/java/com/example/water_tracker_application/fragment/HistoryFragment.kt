@@ -1,4 +1,5 @@
 package com.example.water_tracker_application
+
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -16,7 +17,7 @@ import java.util.Date
 import java.util.Locale
 import java.util.Calendar
 
-class HistoryFragment : Fragment() {
+class HistoryFragment : Fragment(), BackPressListener {
 
     private lateinit var calendarView: CalendarView
     private lateinit var percentageTextView: TextView
@@ -27,6 +28,13 @@ class HistoryFragment : Fragment() {
     private lateinit var firestore: FirebaseFirestore
     private var userEmail: String? = null
     private val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+
+    override fun onBackPressExitApp(): Boolean {
+        // Implement the behavior for handling the back button press in this fragment
+        // Return true to request the activity to exit the app
+        // Return false to allow the default behavior
+        return true // Add your logic here as needed
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,

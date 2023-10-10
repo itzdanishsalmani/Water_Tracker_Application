@@ -1,6 +1,5 @@
 package com.example.water_tracker_application
 
-import android.app.Notification
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -20,14 +19,13 @@ class MemoBroadcast : BroadcastReceiver() {
         val builder = NotificationCompat.Builder(context, "Notification")
             .setContentIntent(pendingIntent)
             .setSmallIcon(R.drawable.baseline_notifications_24)
-            .setLargeIcon(Bitmap.createScaledBitmap(BitmapFactory.decodeResource(context.resources, R.drawable.glass), 128, 128, false))
-            .setContentTitle("Reminder")
-            .setContentText("Hey! Dont forget to drink water")
-            .setPriority(Notification.PRIORITY_DEFAULT)
+            .setLargeIcon(Bitmap.createScaledBitmap(BitmapFactory.decodeResource(context.resources, R.drawable.water_drop_specs), 128, 128, false))
+            .setContentTitle("Water Tracker Application")
+            .setContentText("Hey! Don't forget to drink water")
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
 
         val notificationManager = NotificationManagerCompat.from(context)
-
         notificationManager.notify(200, builder.build())
     }
 }
