@@ -1,9 +1,9 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Base.Theme.Water_Traker_Application" parent="Theme.Material3.Light.NoActionBar">
+    <style name="Base.Theme.Water_Tracker_Application" parent="Theme.Material3.Light.NoActionBar">
         <!-- Customize your light theme here. -->
         <item name="colorPrimary">@color/purple_500</item>
     </style>
 
-    <style name="Theme.Water_Traker_Application" parent="Base.Theme.Water_Traker_Application" />
+    <style name="Theme.Water_Tracker_Application" parent="Base.Theme.Water_Tracker_Application" />
 </resources>

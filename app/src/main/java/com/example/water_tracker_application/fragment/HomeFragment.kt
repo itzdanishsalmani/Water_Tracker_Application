@@ -70,12 +70,12 @@ class HomeFragment : Fragment(), BackPressListener {
         return true // Add your logic here as needed
     }
 
-    @SuppressLint("ScheduleExactAlarm")
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        scheduleNotificationAlarm()
+
 
         val view = inflater.inflate(R.layout.fragment_home, container, false)
 
@@ -146,48 +146,6 @@ class HomeFragment : Fragment(), BackPressListener {
         fetchCurrentMLFromFirestore()
 
         return view
-    }
-
-    @SuppressLint("ScheduleExactAlarm")
-    private fun scheduleNotificationAlarm() {
-        val alarmManager = requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
-
-        val intent = Intent(requireContext(), MemoBroadcast::class.java)
-        val pendingIntent = PendingIntent.getBroadcast(
-            requireContext(),
-            0,
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT
-        )
-
-        val calendar = Calendar.getInstance()
-        calendar.set(Calendar.HOUR_OF_DAY, 7)
-        calendar.set(Calendar.MINUTE, 0)
-        calendar.set(Calendar.SECOND, 0)
-
-        val endTime = Calendar.getInstance()
-        endTime.set(Calendar.HOUR_OF_DAY, 22)
-        endTime.set(Calendar.MINUTE, 0)
-        endTime.set(Calendar.SECOND, 0)
-
-        while (calendar.before(endTime)) {
-            alarmManager.setRepeating(
-                AlarmManager.RTC_WAKEUP,
-                calendar.timeInMillis,
-                AlarmManager.INTERVAL_HOUR,
-                pendingIntent
-            )
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                alarmManager.setExactAndAllowWhileIdle(
-                    AlarmManager.RTC_WAKEUP,
-                    calendar.timeInMillis,
-                    pendingIntent
-                )
-            }
-
-            calendar.add(Calendar.HOUR_OF_DAY, 1)
-        }
     }
 
     private fun addWater(mlToAdd: Float) {
