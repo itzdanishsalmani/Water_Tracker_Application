@@ -1,6 +1,7 @@
 package com.example.water_tracker_application
 
 import android.annotation.SuppressLint
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,7 +14,9 @@ class WaterLogAdapter(private val waterLogs: MutableList<WaterLog>) :
     fun clearData() {
         waterLogs.clear()
         notifyDataSetChanged()
+        Log.d("WaterLogAdapter", "Data cleared")
     }
+
     inner class WaterLogViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val timeTextView: TextView = itemView.findViewById(R.id.timeTextView)
         val amountTextView: TextView = itemView.findViewById(R.id.amountTextView)

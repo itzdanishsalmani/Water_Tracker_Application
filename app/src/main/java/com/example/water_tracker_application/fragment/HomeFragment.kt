@@ -1,15 +1,8 @@
 package com.example.water_tracker_application
 
-import android.annotation.SuppressLint
-import android.app.AlarmManager
-import android.app.PendingIntent
 import android.content.Context
-import android.content.Intent
 import android.content.SharedPreferences
-import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -31,7 +24,6 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import kotlin.random.Random
@@ -48,8 +40,6 @@ class HomeFragment : Fragment(), BackPressListener {
     private var currentML: Float = 0f
     private var requiredML: Float = 0f
 
-    private lateinit var previousDate: String
-
     private lateinit var currentDate: String
 
     private lateinit var sharedPreferences: SharedPreferences
@@ -61,7 +51,6 @@ class HomeFragment : Fragment(), BackPressListener {
     private val quotesArray: Array<String> by lazy {
         resources.getStringArray(R.array.quotes)
     }
-    private var isButtonEnabled = true
 
     override fun onBackPressExitApp(): Boolean {
         // Implement the behavior for handling the back button press in this fragment
@@ -111,20 +100,9 @@ class HomeFragment : Fragment(), BackPressListener {
 
         val addWaterButton = view.findViewById<ImageButton>(R.id.addWaterButton)
         addWaterButton.setOnClickListener {
-            if (isButtonEnabled) {
-                isButtonEnabled = false
-                addWater(150f)
+                addWater()
                 showRandomQuote()
             }
-        }
-
-        val handler = Handler(Looper.getMainLooper())
-        val checkDateRunnable = object : Runnable {
-            override fun run() {
-                handler.postDelayed(this, 60000)
-            }
-        }
-        handler.post(checkDateRunnable)
 
         firebaseAuth = FirebaseAuth.getInstance()
         firestore = FirebaseFirestore.getInstance()
@@ -148,10 +126,9 @@ class HomeFragment : Fragment(), BackPressListener {
         return view
     }
 
-    private fun addWater(mlToAdd: Float) {
-        val cupSize = sharedPreferences.getFloat("cupSize", 150f)
-
+    private fun addWater() {
         GlobalScope.launch(Dispatchers.Main) {
+            val mlToAdd = 150f // Fixed value of 150ml
             val log = WaterLog(getCurrentTime(), mlToAdd)
             logAdapter.notifyItemInserted(0)
             currentML += mlToAdd
@@ -160,11 +137,9 @@ class HomeFragment : Fragment(), BackPressListener {
             circularProgressBar.setProgressWithAnimation(progressPercentage, 500)
             logWaterInBackground(mlToAdd)
             updateUserFirestoreData()
-            Handler().postDelayed({
-                isButtonEnabled = true
-            }, 1000)
         }
     }
+
 
     private fun showRandomQuote() {
         val random = Random
