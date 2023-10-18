@@ -40,9 +40,10 @@ class HomeFragment : Fragment(), BackPressListener {
     private var currentML: Float = 0f
     private var requiredML: Float = 0f
 
-    private lateinit var currentDate: String
+    private var lastSavedDate: String = ""
 
     private lateinit var sharedPreferences: SharedPreferences
+    private lateinit var lastSavedDatePrefs: SharedPreferences
 
     private lateinit var firebaseAuth: FirebaseAuth
     private lateinit var firestore: FirebaseFirestore
@@ -53,25 +54,20 @@ class HomeFragment : Fragment(), BackPressListener {
     }
 
     override fun onBackPressExitApp(): Boolean {
-        // Implement the behavior for handling the back button press in this fragment
-        // Return true to request the activity to exit the app
-        // Return false to allow the default behavior
         return true // Add your logic here as needed
     }
-
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
-
         val view = inflater.inflate(R.layout.fragment_home, container, false)
 
         requiredMLTextView = view.findViewById(R.id.requiredML)
         currentMLTextView = view.findViewById(R.id.currentML)
 
         sharedPreferences = requireContext().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+        lastSavedDatePrefs = requireContext().getSharedPreferences("LastSavedDatePrefs", Context.MODE_PRIVATE)
 
         val passedRequiredML = requireActivity().intent.getFloatExtra("requiredML", -1f)
         if (passedRequiredML != -1f) {
@@ -100,9 +96,9 @@ class HomeFragment : Fragment(), BackPressListener {
 
         val addWaterButton = view.findViewById<ImageButton>(R.id.addWaterButton)
         addWaterButton.setOnClickListener {
-                addWater()
-                showRandomQuote()
-            }
+            addWater()
+            showRandomQuote()
+        }
 
         firebaseAuth = FirebaseAuth.getInstance()
         firestore = FirebaseFirestore.getInstance()
@@ -113,12 +109,17 @@ class HomeFragment : Fragment(), BackPressListener {
             userEmail = firebaseAuth.currentUser?.email
         }
 
-        loadWaterLogsFromSharedPreferences()
+        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val lastSavedDate = lastSavedDatePrefs.getString("lastSavedDate", "")
 
-        logRecyclerView = view.findViewById(R.id.logRecyclerView)
-        logAdapter = WaterLogAdapter(waterLogs)
-        logRecyclerView.adapter = logAdapter
-        logRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+        if (currentDate != lastSavedDate) {
+            lastSavedDatePrefs.edit().putString("lastSavedDate", currentDate).apply()
+            currentML = 0f
+            logAdapter.clearData()
+            updateUserFirestoreDataForNewDate(currentDate)
+        } else {
+            loadWaterLogsFromSharedPreferences()
+        }
 
         fetchRequiredMLFromFirestore()
         fetchCurrentMLFromFirestore()
@@ -272,13 +273,4 @@ class HomeFragment : Fragment(), BackPressListener {
         }
     }
 
-    private fun checkForDateChangeAndResetData() {
-        val newDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-        if (newDate != currentDate) {
-            waterLogs.clear()
-            logAdapter.notifyDataSetChanged()
-            updateUserFirestoreDataForNewDate(newDate)
-            currentDate = newDate
-        }
-    }
 }
