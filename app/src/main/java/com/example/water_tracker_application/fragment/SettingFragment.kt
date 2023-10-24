@@ -30,9 +30,20 @@ class SettingFragment : Fragment() {
         val changeWeightEditText = view.findViewById<EditText>(R.id.changeWeightEditText)
         val weightConfirmButton = view.findViewById<Button>(R.id.weightConfirmButton)
 
+        val changeCupEditText = view.findViewById<EditText>(R.id.changeCupEditText)
+        val cupConfirmButton = view.findViewById<Button>(R.id.cupConfirmButton)
+
         // Retrieve and display the user's weight from SharedPreferences
         currentWeight = sharedPreferences.getFloat("userWeight", 0f)
         currentWeightTextView.text = currentWeight.toString()
+
+        cupConfirmButton.setOnClickListener {
+            val newCupSize = changeCupEditText.text.toString().toFloat()
+            val homeFragment = parentFragmentManager.fragments.firstOrNull { it is HomeFragment } as? HomeFragment
+            homeFragment?.updateCupSize(newCupSize)
+            changeCupEditText.text.clear()
+            Toast.makeText(context, "Cup size has been updated!", Toast.LENGTH_SHORT).show()
+        }
 
         // Handle goal confirmation
         goalConfirmButton.setOnClickListener {

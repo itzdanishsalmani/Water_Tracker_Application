@@ -41,6 +41,8 @@ class HomeFragment : Fragment(), BackPressListener {
     private var requiredML: Float = 0f
 
     private var lastSavedDate: String = ""
+    private var cupSize: Float = 150f  // Default cup size
+
 
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var lastSavedDatePrefs: SharedPreferences
@@ -72,6 +74,9 @@ class HomeFragment : Fragment(), BackPressListener {
         // Check if requiredML exists in SharedPreferences, otherwise use the default value
         requiredML = sharedPreferences.getFloat("requiredML", 0f)
 
+        // Check if cupSize exists in SharedPreferences, otherwise use the default value
+        cupSize = sharedPreferences.getFloat("cupSize", 150f)
+
         val passedRequiredML = requireActivity().intent.getFloatExtra("requiredML", -1f)
         if (passedRequiredML != -1f) {
             requiredML = passedRequiredML
@@ -99,7 +104,7 @@ class HomeFragment : Fragment(), BackPressListener {
 
         val addWaterButton = view.findViewById<ImageButton>(R.id.addWaterButton)
         addWaterButton.setOnClickListener {
-            addWater()
+            addWater(cupSize)  // Pass the cupSize to the addWater function
             showRandomQuote()
         }
 
@@ -148,9 +153,9 @@ class HomeFragment : Fragment(), BackPressListener {
     }
 
 
-    private fun addWater() {
+    private fun addWater(cupSize: Float) {
         GlobalScope.launch(Dispatchers.Main) {
-            val mlToAdd = 150f // Fixed value of 150ml
+            val mlToAdd = cupSize  // Use the provided cupSize
             var log = WaterLog(getCurrentTime(), mlToAdd)
             logAdapter.notifyItemInserted(0)
             currentML += mlToAdd
@@ -271,5 +276,16 @@ class HomeFragment : Fragment(), BackPressListener {
             waterLogs.clear()
             waterLogs.addAll(Gson().fromJson(waterLogsJson, type))
         }
+    }
+    fun updateCupSize(newCupSize: Float) {
+        // Save the new cup size to SharedPreferences
+        saveCupSizeToSharedPreferences(newCupSize)
+        // Use the new cup size when adding water
+    }
+
+    private fun saveCupSizeToSharedPreferences(newCupSize: Float) {
+        val editor = sharedPreferences.edit()
+        editor.putFloat("cupSize", newCupSize)
+        editor.apply()
     }
 }
