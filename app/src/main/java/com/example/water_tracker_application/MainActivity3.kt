@@ -29,6 +29,7 @@ class MainActivity3 : AppCompatActivity() {
             when (position) {
                 0 -> tab.text = "Home"
                 1 -> tab.text = "History"
+                2 -> tab.text = "Settings"
             }
         }.attach()
     }
@@ -36,7 +37,7 @@ class MainActivity3 : AppCompatActivity() {
     private inner class MyFragmentAdapter(activity: FragmentActivity) :
         FragmentStateAdapter(activity) {
         override fun getItemCount(): Int {
-            return 2 // Number of tabs
+            return 3// Number of tabs
         }
 
         override fun createFragment(position: Int): Fragment {
@@ -44,6 +45,7 @@ class MainActivity3 : AppCompatActivity() {
             return when (position) {
                 0 -> HomeFragment()
                 1 -> HistoryFragment()
+                2 -> SettingFragment()
                 else -> HomeFragment() // Default fragment
             }
         }

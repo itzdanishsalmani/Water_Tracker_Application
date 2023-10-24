@@ -14,7 +14,6 @@ class WaterLogAdapter(private val waterLogs: MutableList<WaterLog>) :
     fun clearData() {
         waterLogs.clear()
         notifyDataSetChanged()
-        Log.d("WaterLogAdapter", "Data cleared")
     }
 
     inner class WaterLogViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

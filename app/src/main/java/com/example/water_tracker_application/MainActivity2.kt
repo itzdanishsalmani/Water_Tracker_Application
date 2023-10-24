@@ -56,7 +56,9 @@ class MainActivity2 : AppCompatActivity() {
 
                 val intent = Intent(this, MainActivity3::class.java)
                 intent.putExtra("calculatedValue", calculatedValue)
+                intent.putExtra("userWeight", weight.toFloat())
                 startActivity(intent)
+                finish()
 
                 // Finish MainActivity2, removing it from the back stack
                 finish()

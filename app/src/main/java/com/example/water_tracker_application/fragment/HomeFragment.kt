@@ -69,6 +69,9 @@ class HomeFragment : Fragment(), BackPressListener {
         sharedPreferences = requireContext().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
         lastSavedDatePrefs = requireContext().getSharedPreferences("LastSavedDatePrefs", Context.MODE_PRIVATE)
 
+        // Check if requiredML exists in SharedPreferences, otherwise use the default value
+        requiredML = sharedPreferences.getFloat("requiredML", 0f)
+
         val passedRequiredML = requireActivity().intent.getFloatExtra("requiredML", -1f)
         if (passedRequiredML != -1f) {
             requiredML = passedRequiredML
@@ -121,16 +124,34 @@ class HomeFragment : Fragment(), BackPressListener {
             loadWaterLogsFromSharedPreferences()
         }
 
-        fetchRequiredMLFromFirestore()
         fetchCurrentMLFromFirestore()
+
+        // Inside HomeFragment when navigating to SettingFragment
+        val settingFragment = SettingFragment()
+        val bundle = Bundle()
+        bundle.putFloat("intakeGoal", requiredML)
+        settingFragment.arguments = bundle
+
 
         return view
     }
+    fun updateIntakeGoal(newIntakeGoal: Float) {
+        requiredML = newIntakeGoal
+        // Update the requiredML in shared preferences
+        saveRequiredMLToSharedPreferences(requiredML)
+    }
+
+    private fun saveRequiredMLToSharedPreferences(requiredML: Float) {
+        val editor = sharedPreferences.edit()
+        editor.putFloat("requiredML", requiredML)
+        editor.apply()
+    }
+
 
     private fun addWater() {
         GlobalScope.launch(Dispatchers.Main) {
             val mlToAdd = 150f // Fixed value of 150ml
-            val log = WaterLog(getCurrentTime(), mlToAdd)
+            var log = WaterLog(getCurrentTime(), mlToAdd)
             logAdapter.notifyItemInserted(0)
             currentML += mlToAdd
             currentMLTextView.text = String.format("%.0f /", currentML)
@@ -140,7 +161,6 @@ class HomeFragment : Fragment(), BackPressListener {
             updateUserFirestoreData()
         }
     }
-
 
     private fun showRandomQuote() {
         val random = Random
@@ -208,26 +228,6 @@ class HomeFragment : Fragment(), BackPressListener {
                 }
         }
     }
-
-    private fun fetchRequiredMLFromFirestore() {
-        userEmail?.let { email ->
-            firestore.collection("users")
-                .document(email)
-                .get()
-                .addOnSuccessListener { documentSnapshot ->
-                    if (documentSnapshot.exists()) {
-                        val requiredMLFromFirestore = documentSnapshot.getDouble("requiredML")
-                        if (requiredMLFromFirestore != null) {
-                            requiredML = requiredMLFromFirestore.toFloat()
-                            requiredMLTextView.text = String.format("%.0f ml", requiredML)
-                        }
-                    }
-                }
-                .addOnFailureListener { e ->
-                }
-        }
-    }
-
     private fun fetchCurrentMLFromFirestore() {
         userEmail?.let { email ->
             val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
@@ -272,5 +272,4 @@ class HomeFragment : Fragment(), BackPressListener {
             waterLogs.addAll(Gson().fromJson(waterLogsJson, type))
         }
     }
-
 }
