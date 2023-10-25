@@ -6,8 +6,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.ImageButton
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -144,6 +146,9 @@ class HomeFragment : Fragment(), BackPressListener {
         requiredML = newIntakeGoal
         // Update the requiredML in shared preferences
         saveRequiredMLToSharedPreferences(requiredML)
+
+        // Update the requiredMLTextView immediately
+        requiredMLTextView.text = String.format("%.0f ml", requiredML)
     }
 
     private fun saveRequiredMLToSharedPreferences(requiredML: Float) {
@@ -164,6 +169,7 @@ class HomeFragment : Fragment(), BackPressListener {
             circularProgressBar.setProgressWithAnimation(progressPercentage, 500)
             logWaterInBackground(mlToAdd)
             updateUserFirestoreData()
+            Toast.makeText(requireContext(), "$mlToAdd ml added", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -280,7 +286,13 @@ class HomeFragment : Fragment(), BackPressListener {
     fun updateCupSize(newCupSize: Float) {
         // Save the new cup size to SharedPreferences
         saveCupSizeToSharedPreferences(newCupSize)
-        // Use the new cup size when adding water
+
+        // Update the cupSize variable
+        cupSize = newCupSize
+
+        // Update the belowButton text to show the new cupSize
+        val belowButton = view?.findViewById<TextView>(R.id.belowButton)
+        belowButton?.text = String.format("%.0f ml", cupSize)
     }
 
     private fun saveCupSizeToSharedPreferences(newCupSize: Float) {

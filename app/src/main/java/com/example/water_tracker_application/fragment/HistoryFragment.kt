@@ -64,10 +64,14 @@ class HistoryFragment : Fragment(), BackPressListener {
 
             if (selectedDate <= currentDate) {
                 fetchFirestoreData(selectedDate)
+                calculateAndDisplayMonthlyAverage(selectedDate) // Call it when the user selects a date
             } else {
                 Toast.makeText(requireContext(), "Future date cannot be selected", Toast.LENGTH_SHORT).show()
             }
         }
+
+        // Set an initial value for the monthly average
+        calculateAndDisplayMonthlyAverage(currentDate)
 
         return view
     }
@@ -97,7 +101,7 @@ class HistoryFragment : Fragment(), BackPressListener {
                         percentageTextView.text = "$percentage% completed"
 
                         calculateAndDisplayWeeklyAverage(selectedDate)
-                        calculateAndDisplayMonthlyAverage()
+                        calculateAndDisplayMonthlyAverage(selectedDate) // Also update monthly average here
                     } else {
                         percentageTextView.text = "0%"
                     }
@@ -108,18 +112,32 @@ class HistoryFragment : Fragment(), BackPressListener {
         }
     }
 
-    private fun calculateAndDisplayMonthlyAverage() {
+    private fun calculateAndDisplayMonthlyAverage(selectedDate: String) {
         userEmail?.let { email ->
+            // Extract the year and month from the selected date
+            val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val parsedDate = sdf.parse(selectedDate)
             val calendar = Calendar.getInstance()
-            calendar.time = Date()
-            calendar.set(Calendar.DAY_OF_MONTH, 1) // Set to the 1st day of the current month
-            val startDate =
-                SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
+            calendar.time = parsedDate
+            val year = calendar.get(Calendar.YEAR)
+            val month = calendar.get(Calendar.MONTH)
 
-            calendar.add(Calendar.MONTH, 1) // Move to the 1st day of the next month
-            calendar.add(Calendar.DAY_OF_MONTH, -1) // Subtract 1 day to get the day before the 1st day of the next month
-            val endDate =
-                SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
+            // Calculate the start and end dates for the selected month
+            val startDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(
+                Calendar.getInstance().apply {
+                    set(Calendar.YEAR, year)
+                    set(Calendar.MONTH, month)
+                    set(Calendar.DAY_OF_MONTH, 1)
+                }.time
+            )
+
+            val endDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(
+                Calendar.getInstance().apply {
+                    set(Calendar.YEAR, year)
+                    set(Calendar.MONTH, month)
+                    set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH))
+                }.time
+            )
 
             firestore.collection("users/$email/dailyData")
                 .whereGreaterThanOrEqualTo(FieldPath.documentId(), startDate)
