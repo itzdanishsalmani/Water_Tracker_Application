@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
@@ -104,6 +103,10 @@ class HomeFragment : Fragment(), BackPressListener {
         logRecyclerView.adapter = logAdapter
         logRecyclerView.layoutManager = LinearLayoutManager(requireContext())
 
+        cupSize = loadCupSizeFromSharedPreferences()
+        val belowButton = view.findViewById<TextView>(R.id.belowButton)
+        belowButton.text = String.format("%.0f ml", cupSize)
+
         val addWaterButton = view.findViewById<ImageButton>(R.id.addWaterButton)
         addWaterButton.setOnClickListener {
             addWater(cupSize)  // Pass the cupSize to the addWater function
@@ -134,7 +137,7 @@ class HomeFragment : Fragment(), BackPressListener {
         fetchCurrentMLFromFirestore()
 
         // Inside HomeFragment when navigating to SettingFragment
-        val settingFragment = SettingFragment()
+        val settingFragment = SettingsFragment()
         val bundle = Bundle()
         bundle.putFloat("intakeGoal", requiredML)
         settingFragment.arguments = bundle
@@ -299,5 +302,9 @@ class HomeFragment : Fragment(), BackPressListener {
         val editor = sharedPreferences.edit()
         editor.putFloat("cupSize", newCupSize)
         editor.apply()
+    }
+
+    private fun loadCupSizeFromSharedPreferences(): Float {
+        return sharedPreferences.getFloat("cupSize", 150f) // Use the default value if not set
     }
 }

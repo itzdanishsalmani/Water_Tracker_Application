@@ -30,10 +30,8 @@ class HistoryFragment : Fragment(), BackPressListener {
     private val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
 
     override fun onBackPressExitApp(): Boolean {
-        // Implement the behavior for handling the back button press in this fragment
         // Return true to request the activity to exit the app
-        // Return false to allow the default behavior
-        return true // Add your logic here as needed
+        return true
     }
 
     override fun onCreateView(
@@ -58,20 +56,88 @@ class HistoryFragment : Fragment(), BackPressListener {
 
         calendarView.maxDate = Date().time
 
+        // Add this function to calculate the weekly average for a given month and year
+        fun calculateAndDisplayWeeklyAverageForMonth(year: Int, month: Int) {
+            userEmail?.let { email ->
+                // Calculate the start and end dates for the selected month
+                val startDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(
+                    Calendar.getInstance().apply {
+                        set(Calendar.YEAR, year)
+                        set(Calendar.MONTH, month)
+                        set(Calendar.DAY_OF_MONTH, 1)
+                    }.time
+                )
+
+                val endDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(
+                    Calendar.getInstance().apply {
+                        set(Calendar.YEAR, year)
+                        set(Calendar.MONTH, month)
+                        set(Calendar.DAY_OF_MONTH, Calendar.getInstance().getActualMaximum(Calendar.DAY_OF_MONTH))
+                    }.time
+                )
+
+                firestore.collection("users/$email/dailyData")
+                    .whereGreaterThanOrEqualTo(FieldPath.documentId(), startDate)
+                    .whereLessThanOrEqualTo(FieldPath.documentId(), endDate)
+                    .get()
+                    .addOnSuccessListener { querySnapshot ->
+                        val dailyPercentages = mutableListOf<Int>()
+                        querySnapshot.documents.forEach { documentSnapshot ->
+                            val currentML = documentSnapshot.getDouble("currentML") ?: 0.0
+                            val requiredML = documentSnapshot.getDouble("requiredML") ?: 0.0
+
+                            val dailyPercentage = if (requiredML > 0) {
+                                val calculatedPercentage = (currentML / requiredML * 100).toInt()
+                                if (calculatedPercentage > 100) {
+                                    100 // Cap the daily percentage at 100
+                                } else {
+                                    calculatedPercentage
+                                }
+                            } else {
+                                0
+                            }
+
+                            dailyPercentages.add(dailyPercentage)
+                        }
+
+                        if (dailyPercentages.isNotEmpty()) {
+                            val weeklySum = dailyPercentages.sum()
+                            val daysInMonth = Calendar.getInstance().apply {
+                                set(Calendar.YEAR, year)
+                                set(Calendar.MONTH, month)
+                            }.getActualMaximum(Calendar.DAY_OF_MONTH)
+                            val weeklyAverage = weeklySum / daysInMonth
+                            weeklyAverageData.text = "Weekly Average: ${weeklyAverage}%"
+                        } else {
+                            weeklyAverageData.text = "Weekly Average: 0%"
+                        }
+                    }
+                    .addOnFailureListener { e ->
+                        weeklyAverageData.text = "Weekly Average: Error"
+                    }
+            }
+        }
+
+        // set an initial value for the weekly average for the current month.
+        val initialYear = Calendar.getInstance().get(Calendar.YEAR)
+        val initialMonth = Calendar.getInstance().get(Calendar.MONTH)
+        calculateAndDisplayWeeklyAverageForMonth(initialYear, initialMonth)
+
         calendarView.setOnDateChangeListener { _, year, month, dayOfMonth ->
             val selectedDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                 .format(Date(year - 1900, month, dayOfMonth))
 
             if (selectedDate <= currentDate) {
                 fetchFirestoreData(selectedDate)
-                calculateAndDisplayMonthlyAverage(selectedDate) // Call it when the user selects a date
+                calculateAndDisplayMonthlyAverage(selectedDate)
+
+                // Calculate and display the weekly average for the selected month
+                val selectedYear = year - 1900 // Adjust the year
+                calculateAndDisplayWeeklyAverageForMonth(selectedYear, month)
             } else {
                 Toast.makeText(requireContext(), "Future date cannot be selected", Toast.LENGTH_SHORT).show()
             }
         }
-
-        // Set an initial value for the monthly average
-        calculateAndDisplayMonthlyAverage(currentDate)
 
         return view
     }
@@ -114,7 +180,6 @@ class HistoryFragment : Fragment(), BackPressListener {
 
     private fun calculateAndDisplayMonthlyAverage(selectedDate: String) {
         userEmail?.let { email ->
-            // Extract the year and month from the selected date
             val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
             val parsedDate = sdf.parse(selectedDate)
             val calendar = Calendar.getInstance()
@@ -122,7 +187,6 @@ class HistoryFragment : Fragment(), BackPressListener {
             val year = calendar.get(Calendar.YEAR)
             val month = calendar.get(Calendar.MONTH)
 
-            // Calculate the start and end dates for the selected month
             val startDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(
                 Calendar.getInstance().apply {
                     set(Calendar.YEAR, year)
@@ -131,13 +195,7 @@ class HistoryFragment : Fragment(), BackPressListener {
                 }.time
             )
 
-            val endDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(
-                Calendar.getInstance().apply {
-                    set(Calendar.YEAR, year)
-                    set(Calendar.MONTH, month)
-                    set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH))
-                }.time
-            )
+            val endDate = selectedDate // Use the selectedDate as the end date
 
             firestore.collection("users/$email/dailyData")
                 .whereGreaterThanOrEqualTo(FieldPath.documentId(), startDate)
@@ -145,6 +203,19 @@ class HistoryFragment : Fragment(), BackPressListener {
                 .get()
                 .addOnSuccessListener { querySnapshot ->
                     val dailyPercentages = mutableListOf<Double>()
+
+                    // Create a set of all days from the 1st day of the month to the present date
+                    val allDays = mutableSetOf<String>()
+                    val currentDateCalendar = Calendar.getInstance()
+                    currentDateCalendar.time = parsedDate
+                    val dayOfMonth = currentDateCalendar.get(Calendar.DAY_OF_MONTH)
+
+                    for (i in 1..dayOfMonth) {
+                        currentDateCalendar.set(Calendar.DAY_OF_MONTH, i)
+                        val day = sdf.format(currentDateCalendar.time)
+                        allDays.add(day)
+                    }
+
                     querySnapshot.documents.forEach { documentSnapshot ->
                         val currentML = documentSnapshot.getDouble("currentML") ?: 0.0
                         val requiredML = documentSnapshot.getDouble("requiredML") ?: 0.0
@@ -161,6 +232,13 @@ class HistoryFragment : Fragment(), BackPressListener {
                         }
 
                         dailyPercentages.add(dailyPercentage)
+                    }
+
+                    // Include days with 0% in the calculation
+                    allDays.forEach { day ->
+                        if (!querySnapshot.documents.any { it.id == day }) {
+                            dailyPercentages.add(0.0)
+                        }
                     }
 
                     if (dailyPercentages.isNotEmpty()) {

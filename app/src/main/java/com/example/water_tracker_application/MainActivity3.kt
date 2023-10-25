@@ -45,7 +45,7 @@ class MainActivity3 : AppCompatActivity() {
             return when (position) {
                 0 -> HomeFragment()
                 1 -> HistoryFragment()
-                2 -> SettingFragment()
+                2 -> SettingsFragment()
                 else -> HomeFragment() // Default fragment
             }
         }

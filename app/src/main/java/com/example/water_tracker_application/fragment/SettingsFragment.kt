@@ -12,7 +12,7 @@ import android.content.SharedPreferences
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 
-class SettingFragment : Fragment() {
+class SettingsFragment : Fragment() {
     private lateinit var sharedPreferences: SharedPreferences
     private var currentWeight: Float = 0f
 
