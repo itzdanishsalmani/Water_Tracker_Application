@@ -1,36 +1,25 @@
 package com.example.water_tracker_application
 
-import android.content.Context
-import android.content.SharedPreferences
+import android.content.*
+import java.util.*
+import android.widget.*
+import android.view.*
+import kotlinx.coroutines.*
+import androidx.recyclerview.widget.*
+import com.google.firebase.firestore.*
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.ImageButton
-import android.widget.TextView
-import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.FirebaseFirestoreSettings
-import com.google.firebase.firestore.SetOptions
 import com.mikhaellopez.circularprogressbar.CircularProgressBar
 import com.google.gson.Gson
 import com.google.common.reflect.TypeToken
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import kotlin.random.Random
 
 class HomeFragment : Fragment(), BackPressListener {
 
+    // Views and variables
     private lateinit var logRecyclerView: RecyclerView
     private lateinit var logAdapter: WaterLogAdapter
     private val waterLogs = ArrayList<WaterLog>()
@@ -43,7 +32,6 @@ class HomeFragment : Fragment(), BackPressListener {
 
     private var lastSavedDate: String = ""
     private var cupSize: Float = 150f  // Default cup size
-
 
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var lastSavedDatePrefs: SharedPreferences
@@ -66,6 +54,7 @@ class HomeFragment : Fragment(), BackPressListener {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_home, container, false)
 
+        // Initialize views and load data from SharedPreferences
         requiredMLTextView = view.findViewById(R.id.requiredML)
         currentMLTextView = view.findViewById(R.id.currentML)
 
@@ -78,6 +67,7 @@ class HomeFragment : Fragment(), BackPressListener {
         // Check if cupSize exists in SharedPreferences, otherwise use the default value
         cupSize = sharedPreferences.getFloat("cupSize", 150f)
 
+        // Load requiredML from intent (if passed)
         val passedRequiredML = requireActivity().intent.getFloatExtra("requiredML", -1f)
         if (passedRequiredML != -1f) {
             requiredML = passedRequiredML
@@ -85,43 +75,50 @@ class HomeFragment : Fragment(), BackPressListener {
             requiredML = sharedPreferences.getFloat("requiredML", 0f)
         }
 
+        // Set requiredML and cupSize in TextViews
         currentMLTextView.text = String.format("%.0f ", currentML)
         requiredMLTextView.text = String.format("%.0f ml", requiredML)
 
+        // Initialize circular progress bar
         val progressBarColor1 = ContextCompat.getColor(requireContext(), R.color.purple_500)
-
         circularProgressBar = view.findViewById(R.id.circularProgressBar)
         circularProgressBar.apply {
             progressMax = 100f
-            progressBarWidth = 10f
+            progressBarWidth = 8f
             backgroundProgressBarWidth = 0f
             progressBarColor = progressBarColor1
         }
 
+        // Initialize RecyclerView for water logs
         logRecyclerView = view.findViewById(R.id.logRecyclerView)
         logAdapter = WaterLogAdapter(waterLogs)
         logRecyclerView.adapter = logAdapter
         logRecyclerView.layoutManager = LinearLayoutManager(requireContext())
 
-        cupSize = loadCupSizeFromSharedPreferences()
+        // Set the belowButton text to the cupSize
         val belowButton = view.findViewById<TextView>(R.id.belowButton)
         belowButton.text = String.format("%.0f ml", cupSize)
 
+        // Set a click listener for the "addWaterButton"
         val addWaterButton = view.findViewById<ImageButton>(R.id.addWaterButton)
         addWaterButton.setOnClickListener {
             addWater(cupSize)  // Pass the cupSize to the addWater function
             showRandomQuote()
         }
 
+        // Initialize Firebase Authentication and Firestore
         firebaseAuth = FirebaseAuth.getInstance()
         firestore = FirebaseFirestore.getInstance()
 
+        // Configure Firestore offline persistence
         configureFirestoreOfflinePersistence()
 
+        // Get the user's email if logged in
         if (firebaseAuth.currentUser != null) {
             userEmail = firebaseAuth.currentUser?.email
         }
 
+        // Check the current date and handle data accordingly
         val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
         val lastSavedDate = lastSavedDatePrefs.getString("lastSavedDate", "")
 
@@ -136,21 +133,13 @@ class HomeFragment : Fragment(), BackPressListener {
 
         fetchCurrentMLFromFirestore()
 
-        // Inside HomeFragment when navigating to SettingFragment
-        val settingFragment = SettingsFragment()
-        val bundle = Bundle()
-        bundle.putFloat("intakeGoal", requiredML)
-        settingFragment.arguments = bundle
-
-
         return view
     }
+
+    // Function to update the intake goal and save it to SharedPreferences
     fun updateIntakeGoal(newIntakeGoal: Float) {
         requiredML = newIntakeGoal
-        // Update the requiredML in shared preferences
         saveRequiredMLToSharedPreferences(requiredML)
-
-        // Update the requiredMLTextView immediately
         requiredMLTextView.text = String.format("%.0f ml", requiredML)
     }
 
@@ -160,10 +149,10 @@ class HomeFragment : Fragment(), BackPressListener {
         editor.apply()
     }
 
-
+    // Function to add water to the current ML and update the UI
     private fun addWater(cupSize: Float) {
         GlobalScope.launch(Dispatchers.Main) {
-            val mlToAdd = cupSize  // Use the provided cupSize
+            val mlToAdd = cupSize
             var log = WaterLog(getCurrentTime(), mlToAdd)
             logAdapter.notifyItemInserted(0)
             currentML += mlToAdd
@@ -176,6 +165,7 @@ class HomeFragment : Fragment(), BackPressListener {
         }
     }
 
+    // Function to display a random quote
     private fun showRandomQuote() {
         val random = Random
         val randomIndex = random.nextInt(quotesArray.size)
@@ -184,6 +174,7 @@ class HomeFragment : Fragment(), BackPressListener {
         quoteTextView?.text = randomQuote
     }
 
+    // Function to log water consumption in the background
     private suspend fun logWaterInBackground(mlAdded: Float) = withContext(Dispatchers.Default) {
         val currentTime = getCurrentTime()
         val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
@@ -195,10 +186,12 @@ class HomeFragment : Fragment(), BackPressListener {
         saveWaterLogsToSharedPreferences()
     }
 
+    // Function to get the current time
     private fun getCurrentTime(): String {
         return SimpleDateFormat("hh:mm a", Locale.getDefault()).format(Date())
     }
 
+    // Function to update Firestore data for a new date
     private fun updateUserFirestoreDataForNewDate(newDate: String) {
         userEmail?.let { email ->
             currentML = 0f
@@ -218,6 +211,7 @@ class HomeFragment : Fragment(), BackPressListener {
         }
     }
 
+    // Function to update Firestore data
     private fun updateUserFirestoreData() {
         userEmail?.let { email ->
             val data = hashMapOf(
@@ -242,6 +236,8 @@ class HomeFragment : Fragment(), BackPressListener {
                 }
         }
     }
+
+    // Function to fetch the current ML from Firestore
     private fun fetchCurrentMLFromFirestore() {
         userEmail?.let { email ->
             val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
@@ -264,6 +260,7 @@ class HomeFragment : Fragment(), BackPressListener {
         }
     }
 
+    // Function to configure Firestore offline persistence
     private fun configureFirestoreOfflinePersistence() {
         val settings = FirebaseFirestoreSettings.Builder()
             .setPersistenceEnabled(true)
@@ -271,6 +268,7 @@ class HomeFragment : Fragment(), BackPressListener {
         firestore.firestoreSettings = settings
     }
 
+    // Function to save water logs to SharedPreferences
     private fun saveWaterLogsToSharedPreferences() {
         val editor = sharedPreferences.edit()
         val waterLogsJson = Gson().toJson(waterLogs)
@@ -278,6 +276,7 @@ class HomeFragment : Fragment(), BackPressListener {
         editor.apply()
     }
 
+    // Function to load water logs from SharedPreferences
     private fun loadWaterLogsFromSharedPreferences() {
         val waterLogsJson = sharedPreferences.getString("waterLogs", null)
         if (waterLogsJson != null) {
@@ -286,24 +285,23 @@ class HomeFragment : Fragment(), BackPressListener {
             waterLogs.addAll(Gson().fromJson(waterLogsJson, type))
         }
     }
+
+    // Function to update the cup size and save it to SharedPreferences
     fun updateCupSize(newCupSize: Float) {
-        // Save the new cup size to SharedPreferences
         saveCupSizeToSharedPreferences(newCupSize)
-
-        // Update the cupSize variable
         cupSize = newCupSize
-
-        // Update the belowButton text to show the new cupSize
         val belowButton = view?.findViewById<TextView>(R.id.belowButton)
         belowButton?.text = String.format("%.0f ml", cupSize)
     }
 
+    // Function to save cup size to SharedPreferences
     private fun saveCupSizeToSharedPreferences(newCupSize: Float) {
         val editor = sharedPreferences.edit()
         editor.putFloat("cupSize", newCupSize)
         editor.apply()
     }
 
+    // Function to load cup size from SharedPreferences
     private fun loadCupSizeFromSharedPreferences(): Float {
         return sharedPreferences.getFloat("cupSize", 150f) // Use the default value if not set
     }

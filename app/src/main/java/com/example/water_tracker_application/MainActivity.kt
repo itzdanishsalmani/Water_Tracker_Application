@@ -1,10 +1,9 @@
 package com.example.water_tracker_application
 
-import android.content.Intent
-import android.content.SharedPreferences
+import android.content.*
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.widget.Button
+import android.widget.*
 
 class MainActivity : AppCompatActivity() {
 

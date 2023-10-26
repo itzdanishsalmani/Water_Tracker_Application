@@ -1,15 +1,9 @@
 package com.example.water_tracker_application
 
-import android.content.Context
+import android.content.*
+import android.view.*
+import android.widget.*
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.Button
-import android.widget.EditText
-import android.widget.TextView
-import android.content.SharedPreferences
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 
 class SettingsFragment : Fragment() {
@@ -17,7 +11,8 @@ class SettingsFragment : Fragment() {
     private var currentWeight: Float = 0f
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_setting, container, false)
@@ -39,7 +34,8 @@ class SettingsFragment : Fragment() {
 
         cupConfirmButton.setOnClickListener {
             val newCupSize = changeCupEditText.text.toString().toFloat()
-            val homeFragment = parentFragmentManager.fragments.firstOrNull { it is HomeFragment } as? HomeFragment
+            val homeFragment =
+                parentFragmentManager.fragments.firstOrNull { it is HomeFragment } as? HomeFragment
             homeFragment?.updateCupSize(newCupSize)
             changeCupEditText.text.clear()
             Toast.makeText(context, "Cup size has been updated!", Toast.LENGTH_SHORT).show()
@@ -59,7 +55,8 @@ class SettingsFragment : Fragment() {
             val newWeight = changeWeightEditText.text.toString().toFloat()
             currentWeight = newWeight // Update the currentWeight variable
             val calculatedValue = newWeight * 35
-            currentWeightTextView.text = currentWeight.toString() // Update the currentWeightTextView
+            currentWeightTextView.text =
+                currentWeight.toString() // Update the currentWeightTextView
             Toast.makeText(context, "New weight has been set!", Toast.LENGTH_SHORT).show()
 
             // Save the new weight in SharedPreferences
@@ -75,5 +72,4 @@ class SettingsFragment : Fragment() {
 
         return view
     }
-
 }
