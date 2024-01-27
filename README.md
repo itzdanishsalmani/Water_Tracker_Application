@@ -13,4 +13,4 @@ Create Project on Firebase and download the google-json file into Android studio
 If database is stop responding after one month then increase the date of database in the rule section of Cloud firestore.  
 It send notification everyday at 10 am.  
 Notification can be set in Cloud Messaging section.  
-Download application from telegram channel "https://t.me/coderdanish".   
+Download application from telegram channel "https://t.me/salmanidanish".   
